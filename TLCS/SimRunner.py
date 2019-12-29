@@ -145,7 +145,7 @@ class SimRunner:
         intersection_queue = halt_N + halt_S + halt_E + halt_W
         return intersection_queue
 
-    # RETRIEVE THE STATE OF THE INTERSECTION FROM SUMO
+    # RETRIEVE THE STATE OF THE INTERSECTION FROM SUMO -- ***FIX state****
     def _get_state(self):
         state = np.zeros(self._model.num_states)
 

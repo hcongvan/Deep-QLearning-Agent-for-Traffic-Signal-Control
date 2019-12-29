@@ -87,7 +87,7 @@ def save_graphs(sim_runner, total_episodes, plot_path):
 if __name__ == "__main__":
 
     # --- TRAINING OPTIONS ---
-    gui = False
+    gui = True
     total_episodes = 100
     gamma = 0.75
     batch_size = 100
@@ -101,6 +101,7 @@ if __name__ == "__main__":
     max_steps = 5400  # seconds = 1 h 30 min each episode
     green_duration = 10
     yellow_duration = 4
+    image_shape = (224,224,3)
 
     # setting the cmd mode or the visual mode
     if gui == False:
@@ -109,7 +110,7 @@ if __name__ == "__main__":
         sumoBinary = checkBinary('sumo-gui')
 
     # initializations
-    model = Model(num_states, num_actions, batch_size)
+    model = Model(image_shape,num_states, num_actions, batch_size)
     memory = Memory(memory_size)
     traffic_gen = TrafficGenerator(max_steps)
     sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps)]

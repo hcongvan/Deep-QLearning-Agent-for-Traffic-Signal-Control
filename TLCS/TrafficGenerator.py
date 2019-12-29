@@ -44,7 +44,7 @@ class TrafficGenerator:
             <route id="S_N" edges="S2TL TL2N"/>
             <route id="S_E" edges="S2TL TL2E"/>""", file=routes)
 
-            for car_counter, step in enumerate(car_gen_steps):~
+            for car_counter, step in enumerate(car_gen_steps):
                 straight_or_turn = np.random.uniform()
                 if straight_or_turn < 0.75:  # choose direction: straight or turn - 75% of times the car goes straight
                     route_straight = np.random.randint(1, 5)  # choose a random source & destination

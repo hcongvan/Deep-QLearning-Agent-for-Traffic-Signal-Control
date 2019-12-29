@@ -3,8 +3,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'  # kill warning about tensorflow
 import tensorflow as tf
 
 class Model:
-    def __init__(self, num_states, num_actions, batch_size):
+    def __init__(self, image_shape, num_states, num_actions, batch_size):
         self._num_states = num_states
+        self.image_shape = image_shape
         self._num_actions = num_actions
         self._batch_size = batch_size
 
@@ -23,16 +24,27 @@ class Model:
     # DEFINE THE STRUCTURE OF THE NEURAL NETWORK
     def _define_model(self):
         # placeholders
-        self._states = tf.placeholder(shape=[None, self._num_states], dtype=tf.float32)
+        self._image = tf.placeholder(shape=[None, self.image_shape[0],self.image_shape[1],self.image_shape[2]], dtype=tf.float32)
         self._q_s_a = tf.placeholder(shape=[None, self._num_actions], dtype=tf.float32)
 
-        # list of nn layers
-        fc1 = tf.layers.dense(self._states, 400, activation=tf.nn.relu)
-        fc2 = tf.layers.dense(fc1, 400, activation=tf.nn.relu)
-        fc3 = tf.layers.dense(fc2, 400, activation=tf.nn.relu)
-        fc4 = tf.layers.dense(fc3, 400, activation=tf.nn.relu)
-        fc5 = tf.layers.dense(fc4, 400, activation=tf.nn.relu)
-        self._logits = tf.layers.dense(fc5, self._num_actions)
+        # CNN architect (VGG11)
+        x = tf.layers.conv2d(self._image,64, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_1')
+        x = tf.layers.max_pooling2d(x,(2,2),(2,2),name='maxpooling_1')
+        x = tf.layers.conv2d(x,128, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_2')
+        x = tf.layers.max_pooling2d(x,(2,2),(2,2),name='maxpooling_2')
+        x = tf.layers.conv2d(x,256, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_3_1')
+        x = tf.layers.conv2d(x,256, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_3_2')
+        x = tf.layers.max_pooling2d(x,(2,2),(2,2),name='maxpooling_3')
+        x = tf.layers.conv2d(x,512, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_4_1')
+        x = tf.layers.conv2d(x,512, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_4_2')
+        x = tf.layers.max_pooling2d(x,(2,2),(2,2),name='maxpooling_4')
+        x = tf.layers.conv2d(x,256, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_5_1')
+        x = tf.layers.conv2d(x,256, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_5_2')
+        x = tf.layers.max_pooling2d(x,(2,2),(2,2),name='maxpooling_5')
+        x = tf.layers.flatten(x,name='flatten')
+        fc1 = tf.layers.dense(x, 4096, activation=tf.nn.relu)
+        fc2 = tf.layers.dense(fc1, 4096, activation=tf.nn.relu)
+        self._logits = tf.layers.dense(fc2, self._num_actions)
 
         # parameters
         loss = tf.losses.mean_squared_error(self._q_s_a, self._logits)
@@ -40,16 +52,16 @@ class Model:
         self._var_init = tf.global_variables_initializer()
 
     # RETURNS THE OUTPUT OF THE NETWORK GIVEN A SINGLE STATE
-    def predict_one(self, state, sess):
-        return sess.run(self._logits, feed_dict={self._states: state.reshape(1, self.num_states)})
+    def predict_one(self, image, sess):
+        return sess.run(self._logits, feed_dict={self._image: image})
 
     # RETURNS THE OUTPUT OF THE NETWORK GIVEN A BATCH OF STATES
-    def predict_batch(self, states, sess):
-        return sess.run(self._logits, feed_dict={self._states: states})
+    def predict_batch(self, images, sess):
+        return sess.run(self._logits, feed_dict={self._image: images})
 
     # TRAIN THE NETWORK
     def train_batch(self, sess, x_batch, y_batch):
-        sess.run(self._optimizer, feed_dict={self._states: x_batch, self._q_s_a: y_batch})
+        sess.run(self._optimizer, feed_dict={self._image: x_batch, self._q_s_a: y_batch})
 
     @property
     def num_states(self):
