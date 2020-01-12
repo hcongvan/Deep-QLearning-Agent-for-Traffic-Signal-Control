@@ -14,13 +14,10 @@ else:
 
 
 sumoBinary = checkBinary('sumo-gui')
-sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(100)]
+sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(100),"--start"]
 traci.start(sumoCmd)
-durations = 50
+durations = 10
 for i in range(durations):
     traci.simulationStep()
     if i % 10 == 0:
         traci.gui.screenshot('View #0','image/{}.png'.format(str(i)))
-
-gen = TrafficGenerator(5400)
-gen.generate_routefile(20)

@@ -1,6 +1,10 @@
 import traci
 import numpy as np
 import random
+import PIL
+from PIL import Image
+import os
+import time
 
 # phase codes based on tlcs.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -49,12 +53,13 @@ class SimRunner:
         old_total_wait = 0
         self._waiting_times = {}
         self._sum_intersection_queue = 0
-
+        previous = 0
         while self._steps < self._max_steps:
 
             # get current state of the intersection
             current_state = self._get_state()
-
+            current_image = self._get_image(self._steps,previous)
+            previous = self._steps
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             current_total_wait = self._get_waiting_times()
@@ -62,7 +67,7 @@ class SimRunner:
 
             # saving the data into the memory
             if self._steps != 0:
-                self._memory.add_sample((old_state, old_action, reward, current_state))
+                self._memory.add_sample((old_image, old_state, old_action, reward, current_state, current_image))
 
             # choose the light phase to activate, based on the current state of the intersection
             action = self._choose_action(current_state)
@@ -78,6 +83,7 @@ class SimRunner:
 
             # saving variables for later & accumulate reward
             old_state = current_state
+            old_image = current_image
             old_action = action
             old_total_wait = current_total_wait
             if reward < 0:
@@ -208,26 +214,39 @@ class SimRunner:
 
         return state
 
+    #Retrive the picture 
+    def _get_image(self,index,old):
+        traci.gui.screenshot('View #0','image/{}.png'.format(str(index)))
+        im = Image.open('image/{}.png'.format(str(old)))
+        h,w = im.size
+        cenx = h/2
+        ceny = w/2
+        im2 = im.crop([cenx - ceny,0,cenx + ceny,w])
+        im2 = im2.resize((224,224)).convert('RGB')
+        arr = np.array(im2)
+        os.remove('image/{}.png'.format(str(old)))
+        return arr
+
     # RETRIEVE A GROUP OF SAMPLES AND UPDATE THE Q-LEARNING EQUATION, THEN TRAIN
     def _replay(self):
         batch = self._memory.get_samples(self._model.batch_size)
         if len(batch) > 0:  # if there is at least 1 sample in the batch
             states = np.array([val[0] for val in batch])  # extract states from the batch
-            next_states = np.array([val[3] for val in batch])  # extract next states from the batch
+            next_states = np.array([val[5] for val in batch])  # extract next states from the batch
 
             # prediction
             q_s_a = self._model.predict_batch(states, self._sess)  # predict Q(state), for every sample
             q_s_a_d = self._model.predict_batch(next_states, self._sess)  # predict Q(next_state), for every sample
 
             # setup training arrays
-            x = np.zeros((len(batch), self._model.num_states))
+            x = np.zeros((len(batch), 224,224,3))
             y = np.zeros((len(batch), self._model.num_actions))
 
             for i, b in enumerate(batch):
-                state, action, reward, next_state = b[0], b[1], b[2], b[3]  # extract data from one sample
+                image, state, action, reward, next_state, next_image = b[0],b[1], b[2], b[3], b[4], b[5]  # extract data from one sample
                 current_q = q_s_a[i]  # get the Q(state) predicted before
                 current_q[action] = reward + self._gamma * np.amax(q_s_a_d[i])  # update Q(state, action)
-                x[i] = state
+                x[i] = image
                 y[i] = current_q  # Q(state) that includes the updated action value
 
             self._model.train_batch(self._sess, x, y)  # train the NN

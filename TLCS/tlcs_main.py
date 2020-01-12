@@ -113,7 +113,7 @@ if __name__ == "__main__":
     model = Model(image_shape,num_states, num_actions, batch_size)
     memory = Memory(memory_size)
     traffic_gen = TrafficGenerator(max_steps)
-    sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps)]
+    sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start"]
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
