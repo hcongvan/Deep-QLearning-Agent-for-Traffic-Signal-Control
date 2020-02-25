@@ -70,7 +70,7 @@ class SimRunner:
                 self._memory.add_sample((old_image, old_state, old_action, reward, current_state, current_image))
 
             # choose the light phase to activate, based on the current state of the intersection
-            action = self._choose_action(current_state)
+            action = self._choose_action(current_state,current_image)
 
             # if the chosen phase is different from the last phase, activate the yellow phase
             if self._steps != 0 and old_action != action:
@@ -120,11 +120,11 @@ class SimRunner:
         return total_waiting_time
 
     # DECIDE WHETER TO PERFORM AN EXPLORATIVE OR EXPLOITATIVE ACTION = EPSILON-GREEDY POLICY
-    def _choose_action(self, state):
+    def _choose_action(self, state,image):
         if random.random() < self._eps:
             return random.randint(0, self._model.num_actions - 1) # random action
         else:
-            return np.argmax(self._model.predict_one(state, self._sess)) # the best action given the current state
+            return np.argmax(self._model.predict_one(image.reshape([1,224,224,3]), self._sess)) # the best action given the current state
 
     # SET IN SUMO THE CORRECT YELLOW PHASE
     def _set_yellow_phase(self, old_action):
@@ -224,7 +224,8 @@ class SimRunner:
         im2 = im.crop([cenx - ceny,0,cenx + ceny,w])
         im2 = im2.resize((224,224)).convert('RGB')
         arr = np.array(im2)
-        os.remove('image/{}.png'.format(str(old)))
+        if old != 0 :
+            os.remove('image/{}.png'.format(str(old)))
         return arr
 
     # RETRIEVE A GROUP OF SAMPLES AND UPDATE THE Q-LEARNING EQUATION, THEN TRAIN

@@ -6,6 +6,12 @@ from __future__ import print_function
 
 import os
 import sys
+if 'SUMO_HOME' in os.environ:
+    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools)
+else:
+    sys.exit("please declare environment variable 'SUMO_HOME'")
+
 from sumolib import checkBinary
 import matplotlib.pyplot as plt
 import datetime
@@ -20,11 +26,7 @@ from Memory import Memory
 from Model import Model
 
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
-if 'SUMO_HOME' in os.environ:
-    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
-    sys.path.append(tools)
-else:
-    sys.exit("please declare environment variable 'SUMO_HOME'")
+
 
 # PLOT AND SAVE THE STATS ABOUT THE SESSION
 def save_graphs(sim_runner, total_episodes, plot_path):
@@ -90,7 +92,7 @@ if __name__ == "__main__":
     gui = True
     total_episodes = 100
     gamma = 0.75
-    batch_size = 100
+    batch_size = 10
     memory_size = 50000
     path = "./model/model_1_5x400_100e_075g/"  # nn = 5x400, episodes = 300, gamma = 0.75
     # ----------------------
@@ -98,7 +100,7 @@ if __name__ == "__main__":
     # attributes of the agent
     num_states = 80
     num_actions = 4
-    max_steps = 5400  # seconds = 1 h 30 min each episode
+    max_steps = 100  # seconds = 1 h 30 min each episode
     green_duration = 10
     yellow_duration = 4
     image_shape = (224,224,3)
@@ -113,7 +115,7 @@ if __name__ == "__main__":
     model = Model(image_shape,num_states, num_actions, batch_size)
     memory = Memory(memory_size)
     traffic_gen = TrafficGenerator(max_steps)
-    sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start"]
+    sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start","--quit-on-end"]
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
