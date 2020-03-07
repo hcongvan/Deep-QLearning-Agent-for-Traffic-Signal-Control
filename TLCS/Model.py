@@ -24,8 +24,8 @@ class Model:
     # DEFINE THE STRUCTURE OF THE NEURAL NETWORK
     def _define_model(self):
         # placeholders
-        self._image = tf.placeholder(shape=[None, self.image_shape[0],self.image_shape[1],self.image_shape[2]], dtype=tf.float32)
-        self._q_s_a = tf.placeholder(shape=[None, self._num_actions], dtype=tf.float32)
+        self._image = tf.compat.v1.placeholder(shape=[None, self.image_shape[0],self.image_shape[1],self.image_shape[2]], dtype=tf.float32)
+        self._q_s_a = tf.compat.v1.placeholder(shape=[None, self._num_actions], dtype=tf.float32)
 
         # CNN architect (VGG11)
         x = tf.layers.conv2d(self._image,16, (3,3),(1,1),'same', activation=tf.nn.relu,name='conv2d_1')

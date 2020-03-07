@@ -3,7 +3,14 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-
+import ctypes
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudart64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cublas64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cufft64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\curand64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusolver64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusparse64_100.dll")
+hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudnn64_7.dll")
 import os
 import sys
 if 'SUMO_HOME' in os.environ:
@@ -19,6 +26,11 @@ import tensorflow as tf
 import numpy as np
 import math
 import timeit
+if 'SUMO_HOME' in os.environ:
+    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools)
+else:
+    sys.exit("please declare environment variable 'SUMO_HOME'")
 
 from SimRunner import SimRunner
 from TrafficGenerator import TrafficGenerator
@@ -26,7 +38,6 @@ from Memory import Memory
 from Model import Model
 
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
-
 
 # PLOT AND SAVE THE STATS ABOUT THE SESSION
 def save_graphs(sim_runner, total_episodes, plot_path):
@@ -90,7 +101,7 @@ if __name__ == "__main__":
 
     # --- TRAINING OPTIONS ---
     gui = True
-    total_episodes = 100
+    total_episodes = 10
     gamma = 0.75
     batch_size = 10
     memory_size = 50000

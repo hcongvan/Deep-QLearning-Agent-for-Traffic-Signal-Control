@@ -22,5 +22,5 @@ traci.start(sumoCmd)
 durations = 10
 for i in range(durations):
     traci.simulationStep()
-    if i % 10 == 0:
+    if i % 5 == 0:
         traci.gui.screenshot('View #0','image/{}.png'.format(str(i)))
