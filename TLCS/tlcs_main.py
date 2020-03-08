@@ -106,6 +106,7 @@ if __name__ == "__main__":
     batch_size = 10
     memory_size = 50000
     path = "./model/model_1_5x400_100e_075g/"  # nn = 5x400, episodes = 300, gamma = 0.75
+    test = True
     # ----------------------
 
     # attributes of the agent
@@ -126,14 +127,17 @@ if __name__ == "__main__":
     model = Model(image_shape,num_states, num_actions, batch_size)
     memory = Memory(memory_size)
     traffic_gen = TrafficGenerator(max_steps)
-    sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start","--quit-on-end"]
+    if test:
+        sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_test.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start","--quit-on-end"]
+    else:
+        sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(max_steps),"--start","--quit-on-end"]
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
         print("PATH:", path)
         print("----- Start time:", datetime.datetime.now())
         sess.run(model.var_init)
-        sim_runner = SimRunner(sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd)
+        sim_runner = SimRunner(sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path)
         episode = 0
 
         while episode < total_episodes:

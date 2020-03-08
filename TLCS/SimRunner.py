@@ -5,6 +5,7 @@ import PIL
 from PIL import Image
 import os
 import time
+import tensorflow as tf
 
 # phase codes based on tlcs.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -18,7 +19,7 @@ PHASE_EWL_YELLOW = 7
 
 # HANDLE THE SIMULATION OF THE AGENT
 class SimRunner:
-    def __init__(self, sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd):
+    def __init__(self, sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path):
         self._sess = sess
         self._model = model
         self._memory = memory
@@ -36,7 +37,16 @@ class SimRunner:
         self._reward_store = []
         self._cumulative_wait_store = []
         self._avg_intersection_queue_store = []
-
+        self.test = test
+        if test:
+            with self._sess.as_default():
+                self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=10)
+                print("Restoring")
+                ckpt = tf.train.latest_checkpoint(path)
+                if ckpt:
+                    print("Checkpoint is valid")
+                    #self.step = int(ckpt.split("-")[1])
+                    self.saver.restore(self._sess, ckpt)
 
     # THE MAIN FUCNTION WHERE THE SIMULATION HAPPENS
     def run(self, episode):
@@ -100,7 +110,8 @@ class SimRunner:
         self._steps = self._steps + steps_todo  # update the step counter
         while steps_todo > 0:
             traci.simulationStep()  # simulate 1 step in sumo
-            self._replay()  # training
+            if not self.test:
+                self._replay()  # training
             steps_todo -= 1
             intersection_queue = self._get_stats()
             self._sum_intersection_queue += intersection_queue
