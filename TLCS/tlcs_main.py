@@ -147,9 +147,9 @@ if __name__ == "__main__":
             stop = timeit.default_timer()
             print('Time: ', round(stop - start, 1))
             episode += 1
-
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        saver.save(sess, path + "my_tlcs_model.ckpt") 
-        print("----- End time:", datetime.datetime.now())
-        print("PATH:", path)
+        if not test:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            saver.save(sess, path + "my_tlcs_model.ckpt") 
+            print("----- End time:", datetime.datetime.now())
+            print("PATH:", path)
         save_graphs(sim_runner, total_episodes, path)
