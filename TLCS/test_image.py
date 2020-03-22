@@ -17,7 +17,7 @@ from TrafficGenerator import TrafficGenerator
 
 
 sumoBinary = checkBinary('sumo-gui')
-sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_train.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(100),"--start","--quit-on-end"]
+sumoCmd = [sumoBinary, "-c", "intersection/tlcs_config_test.sumocfg", "--no-step-log", "true", "--waiting-time-memory", str(100),"--start","--quit-on-end"]
 traci.start(sumoCmd)
 durations = 10
 for i in range(durations):

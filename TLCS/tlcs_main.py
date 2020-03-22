@@ -3,14 +3,14 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-import ctypes
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudart64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cublas64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cufft64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\curand64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusolver64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusparse64_100.dll")
-hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudnn64_7.dll")
+# import ctypes
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudart64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cublas64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cufft64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\curand64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusolver64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cusparse64_100.dll")
+# hllDll = ctypes.WinDLL("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\bin\\cudnn64_7.dll")
 import os
 import sys
 if 'SUMO_HOME' in os.environ:
@@ -40,7 +40,7 @@ from Model import Model
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
 
 # PLOT AND SAVE THE STATS ABOUT THE SESSION
-def save_graphs(sim_runner, total_episodes, plot_path):
+def save_graphs(sim_runner, total_episodes, plot_path,test):
 
     plt.rcParams.update({'font.size': 24})  # set bigger font size
 
@@ -94,6 +94,57 @@ def save_graphs(sim_runner, total_episodes, plot_path):
     with open(plot_path + 'queue_data.txt', "w") as file:
         for item in data:
                 file.write("%s\n" % item)
+    if test:
+        # Reward per step
+        data = sim_runner.reward_per_step
+        plt.plot(data)
+        plt.ylabel("Reward")
+        plt.xlabel("Step")
+        plt.margins(0)
+        min_val = min(data)
+        max_val = max(data)
+        plt.ylim(min_val - 0.05 * min_val, max_val + 0.05 * max_val)
+        fig = plt.gcf()
+        fig.set_size_inches(20, 11.25)
+        fig.savefig(plot_path + 'reward_per_step.png', dpi=96)
+        plt.close("all")
+        with open(plot_path + 'reward_per_step.txt', "w") as file:
+            for item in data:
+                    file.write("%s\n" % item)
+        
+        # wait Time per step
+        data = sim_runner.waitTime_per_step
+        plt.plot(data)
+        plt.ylabel("Total Waiting Time")
+        plt.xlabel("Step")
+        plt.margins(0)
+        min_val = min(data)
+        max_val = max(data)
+        plt.ylim(min_val - 0.05 * min_val, max_val + 0.05 * max_val)
+        fig = plt.gcf()
+        fig.set_size_inches(20, 11.25)
+        fig.savefig(plot_path + 'waitTime_per_step.png', dpi=96)
+        plt.close("all")
+        with open(plot_path + 'waitTime_per_step.txt', "w") as file:
+            for item in data:
+                    file.write("%s\n" % item)
+        
+        # vehicle per step
+        data = sim_runner.vehicle
+        plt.plot(data)
+        plt.ylabel("Vehicle")
+        plt.xlabel("Step")
+        plt.margins(0)
+        min_val = min(data)
+        max_val = max(data)
+        plt.ylim(min_val - 0.05 * min_val, max_val + 0.05 * max_val)
+        fig = plt.gcf()
+        fig.set_size_inches(20, 11.25)
+        fig.savefig(plot_path + 'vehicle_per_step.png', dpi=96)
+        plt.close("all")
+        with open(plot_path + 'vehicle_per_step.txt', "w") as file:
+            for item in data:
+                    file.write("%s\n" % item)
 
 
 
@@ -101,8 +152,8 @@ if __name__ == "__main__":
 
     # --- TRAINING OPTIONS ---
     gui = True
-    total_episodes = 10
-    gamma = 0.75
+    total_episodes = 1
+    gamma = 0.25 #0.9 #0.75
     batch_size = 10
     memory_size = 50000
     path = "./model/model_1_5x400_100e_075g/"  # nn = 5x400, episodes = 300, gamma = 0.75
@@ -110,9 +161,9 @@ if __name__ == "__main__":
     # ----------------------
 
     # attributes of the agent
-    num_states = 80
+    num_states = 781
     num_actions = 4
-    max_steps = 100  # seconds = 1 h 30 min each episode
+    max_steps = 7000  # seconds = 1 h 30 min each episode
     green_duration = 10
     yellow_duration = 4
     image_shape = (224,224,3)
@@ -152,4 +203,4 @@ if __name__ == "__main__":
             saver.save(sess, path + "my_tlcs_model.ckpt") 
             print("----- End time:", datetime.datetime.now())
             print("PATH:", path)
-        save_graphs(sim_runner, total_episodes, path)
+        save_graphs(sim_runner, total_episodes, path,test)

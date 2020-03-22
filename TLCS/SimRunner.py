@@ -34,13 +34,16 @@ class SimRunner:
         self._green_duration = green_duration
         self._yellow_duration = yellow_duration
         self._sum_intersection_queue = 0
+        self._reward_per_step = []      # for test session: show reward per step
+        self._waitTime_per_step = []     # for test session: show total wait time of whole vehicle in intersetion per step
+        self._vehicle_per_step = []
         self._reward_store = []
         self._cumulative_wait_store = []
         self._avg_intersection_queue_store = []
         self.test = test
         if test:
             with self._sess.as_default():
-                self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=10)
+                self.saver = tf.train.Saver()
                 print("Restoring")
                 ckpt = tf.train.latest_checkpoint(path)
                 if ckpt:
@@ -96,9 +99,10 @@ class SimRunner:
             old_image = current_image
             old_action = action
             old_total_wait = current_total_wait
+            if self.test:
+                self._reward_per_step.append(reward)
             if reward < 0:
                 tot_neg_reward += reward
-
         self._save_stats(tot_neg_reward)
         print("Total reward: {}, Eps: {}".format(tot_neg_reward, self._eps))
         traci.close()
@@ -114,6 +118,9 @@ class SimRunner:
                 self._replay()  # training
             steps_todo -= 1
             intersection_queue = self._get_stats()
+            if self.test:
+                self._vehicle_per_step.append(len(traci.vehicle.getIDList()))
+                self._waitTime_per_step.append(intersection_queue)
             self._sum_intersection_queue += intersection_queue
 
     # RETRIEVE THE WAITING TIME OF EVERY CAR IN THE INCOMING LANES
@@ -165,7 +172,7 @@ class SimRunner:
     # RETRIEVE THE STATE OF THE INTERSECTION FROM SUMO -- ***FIX state****
     def _get_state(self):
         state = np.zeros(self._model.num_states)
-
+        # print(len(traci.vehicle.getIDList()))
         for veh_id in traci.vehicle.getIDList():
             lane_pos = traci.vehicle.getLanePosition(veh_id)
             lane_id = traci.vehicle.getLaneID(veh_id)
@@ -192,7 +199,7 @@ class SimRunner:
                 lane_cell = 7
             elif lane_pos < 400:
                 lane_cell = 8
-            elif lane_pos <= 750:
+            elif lane_pos < 750:
                 lane_cell = 9
 
             # finding the lane where the car is located - _3 are the "turn left only" lanes
@@ -264,11 +271,11 @@ class SimRunner:
             self._model.train_batch(self._sess, x, y)  # train the NN
 
     # SAVE THE STATS OF THE EPISODE TO PLOT THE GRAPHS AT THE END OF THE SESSION
-    def _save_stats(self, tot_neg_reward):
-            self._reward_store.append(tot_neg_reward)  # how much negative reward in this episode
-            self._cumulative_wait_store.append(self._sum_intersection_queue)  # total number of seconds waited by cars in this episode
-            self._avg_intersection_queue_store.append(self._sum_intersection_queue / self._max_steps)  # average number of queued cars per step, in this episode
-
+    def _save_stats(self, reward):
+        self._reward_store.append(reward)  # how much negative reward in this episode
+        self._cumulative_wait_store.append(self._sum_intersection_queue)  # total number of seconds waited by cars in this episode
+        self._avg_intersection_queue_store.append(self._sum_intersection_queue / self._max_steps)  # average number of queued cars per step, in this episode
+    
     @property
     def reward_store(self):
         return self._reward_store
@@ -280,3 +287,15 @@ class SimRunner:
     @property
     def avg_intersection_queue_store(self):
         return self._avg_intersection_queue_store
+
+    @property
+    def reward_per_step(self):
+        return self._reward_per_step
+
+    @property
+    def waitTime_per_step(self):
+        return self._waitTime_per_step
+
+    @property
+    def vehicle(self):
+        return self._vehicle_per_step

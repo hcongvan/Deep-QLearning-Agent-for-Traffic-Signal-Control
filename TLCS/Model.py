@@ -42,7 +42,7 @@ class Model:
 
         # parameters
         loss = tf.losses.mean_squared_error(self._q_s_a, self._logits)
-        self._optimizer = tf.train.AdamOptimizer().minimize(loss)
+        self._optimizer = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(loss)
         self._var_init = tf.global_variables_initializer()
 
     # RETURNS THE OUTPUT OF THE NETWORK GIVEN A SINGLE STATE
