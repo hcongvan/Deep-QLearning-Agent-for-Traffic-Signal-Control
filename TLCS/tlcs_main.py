@@ -163,7 +163,7 @@ if __name__ == "__main__":
     # attributes of the agent
     num_states = 781
     num_actions = 4
-    max_steps = 7000  # seconds = 1 h 30 min each episode
+    max_steps = 5400  # seconds = 1 h 30 min each episode
     green_duration = 10
     yellow_duration = 4
     image_shape = (224,224,3)

@@ -120,7 +120,7 @@ class SimRunner:
             intersection_queue = self._get_stats()
             if self.test:
                 self._vehicle_per_step.append(len(traci.vehicle.getIDList()))
-                self._waitTime_per_step.append(intersection_queue)
+                self._waitTime_per_step.append(self._get_waiting_times())
             self._sum_intersection_queue += intersection_queue
 
     # RETRIEVE THE WAITING TIME OF EVERY CAR IN THE INCOMING LANES
