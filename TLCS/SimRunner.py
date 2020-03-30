@@ -126,19 +126,29 @@ class SimRunner:
     # RETRIEVE THE WAITING TIME OF EVERY CAR IN THE INCOMING LANES
     def _get_waiting_times(self):
         incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
+        _waiting_times = {}
         for veh_id in traci.vehicle.getIDList():
             wait_time_car = traci.vehicle.getAccumulatedWaitingTime(veh_id)
             road_id = traci.vehicle.getRoadID(veh_id)  # get the road id where the car is located
             if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
-                self._waiting_times[veh_id] = wait_time_car
+                # self._waiting_times[veh_id] = wait_time_car
+                _waiting_times[veh_id] = wait_time_car
             else:
-                if veh_id in self._waiting_times:
-                    del self._waiting_times[veh_id]  # the car isnt in incoming roads anymore, delete his waiting time
-        total_waiting_time = sum(self._waiting_times.values())
+                # if veh_id in self._waiting_times:
+                #     del self._waiting_times[veh_id]  # the car isnt in incoming roads anymore, delete his waiting time
+                if veh_id in _waiting_times:
+                    del _waiting_times[veh_id]  # the car isnt in incoming roads anymore, delete his waiting time
+
+        total_waiting_time = sum(_waiting_times.values())
         return total_waiting_time
 
     # DECIDE WHETER TO PERFORM AN EXPLORATIVE OR EXPLOITATIVE ACTION = EPSILON-GREEDY POLICY
     def _choose_action(self, state,image):
+        if self.test:
+            if random.random() < 0.4:
+                return random.randint(0, self._model.num_actions - 1) # random action
+            else:
+                return np.argmax(self._model.predict_one(image.reshape([1,224,224,3]), self._sess)) 
         if random.random() < self._eps:
             return random.randint(0, self._model.num_actions - 1) # random action
         else:

@@ -15,9 +15,9 @@ from TrafficGenerator import TrafficGenerator
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
 
 
-def _get_waiting_times(_waiting_times):
+def _get_waiting_times():
     incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
-
+    _waiting_times = {}
     for veh_id in traci.vehicle.getIDList():
         wait_time_car = traci.vehicle.getAccumulatedWaitingTime(veh_id)
         road_id = traci.vehicle.getRoadID(veh_id)  # get the road id where the car is located
@@ -38,9 +38,9 @@ waitTime_per_step = []
 vehicle_per_step = []
 for i in range(max_step):
     traci.simulationStep()
-    waitTime_per_step.append(_get_waiting_times(_waiting_times))
+    waitTime_per_step.append(_get_waiting_times())
     vehicle_per_step.append(len(traci.vehicle.getIDList()))
-plot_path = "./model/model_1_5x400_100e_075g/"
+plot_path = "./model/default/"
 # wait Time per step
 data = waitTime_per_step
 plt.plot(data)
