@@ -19,7 +19,7 @@ def _get_waiting_times():
     incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
     _waiting_times = {}
     for veh_id in traci.vehicle.getIDList():
-        wait_time_car = traci.vehicle.getWaitingTime(veh_id)
+        wait_time_car = traci.vehicle.getAccumulatedWaitingTime(veh_id)
         road_id = traci.vehicle.getRoadID(veh_id)  # get the road id where the car is located
         if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
             _waiting_times[veh_id] = wait_time_car

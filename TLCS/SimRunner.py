@@ -26,7 +26,7 @@ class SimRunner:
         self._traffic_gen = traffic_gen
         self._total_episodes = total_episodes
         self._gamma = gamma
-        self._eps = 0  # controls the explorative/exploitative payoff, I choosed epsilon-greedy policy
+        self._eps = 0.25  # controls the explorative/exploitative payoff, I choosed epsilon-greedy policy
         self._steps = 0
         self._waiting_times = {}
         self._sumoCmd = sumoCmd
@@ -58,7 +58,6 @@ class SimRunner:
         traci.start(self._sumoCmd)
 
         # set the epsilon for this episode
-        self._eps = 1.0 - (episode / self._total_episodes)
 
         # inits
         self._steps = 0
@@ -128,7 +127,7 @@ class SimRunner:
         incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
         _waiting_times = {}
         for veh_id in traci.vehicle.getIDList():
-            wait_time_car = traci.vehicle.getWaitingTime(veh_id)
+            wait_time_car = traci.vehicle.getAccumulatedWaitingTime(veh_id)
             road_id = traci.vehicle.getRoadID(veh_id)  # get the road id where the car is located
             if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
                 # self._waiting_times[veh_id] = wait_time_car
@@ -142,10 +141,7 @@ class SimRunner:
     # DECIDE WHETER TO PERFORM AN EXPLORATIVE OR EXPLOITATIVE ACTION = EPSILON-GREEDY POLICY
     def _choose_action(self, state,image):
         if self.test:
-            if random.random() < 0.4:
-                return random.randint(0, self._model.num_actions - 1) # random action
-            else:
-                return np.argmax(self._model.predict_one(image.reshape([1,224,224,3]), self._sess)) 
+            return np.argmax(self._model.predict_one(image.reshape([1,224,224,3]), self._sess)) 
         if random.random() < self._eps:
             return random.randint(0, self._model.num_actions - 1) # random action
         else:
