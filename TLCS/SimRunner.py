@@ -19,7 +19,7 @@ PHASE_EWL_YELLOW = 7
 
 # HANDLE THE SIMULATION OF THE AGENT
 class SimRunner:
-    def __init__(self, sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path):
+    def __init__(self, sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path,restore):
         self._sess = sess
         self._model = model
         self._memory = memory
@@ -41,7 +41,7 @@ class SimRunner:
         self._cumulative_wait_store = []
         self._avg_intersection_queue_store = []
         self.test = test
-        if test:
+        if restore:
             with self._sess.as_default():
                 self.saver = tf.train.Saver()
                 print("Restoring")

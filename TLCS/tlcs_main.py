@@ -152,12 +152,13 @@ if __name__ == "__main__":
 
     # --- TRAINING OPTIONS ---
     gui = True
-    total_episodes = 1
+    total_episodes = 100
     gamma = 0.25 #0.9 #0.75
     batch_size = 10
     memory_size = 50000
     path = "./model/model_1_5x400_100e_075g/"  # nn = 5x400, episodes = 300, gamma = 0.75
-    test = True
+    test = False
+    restore = True
     # ----------------------
 
     # attributes of the agent
@@ -188,7 +189,7 @@ if __name__ == "__main__":
         print("PATH:", path)
         print("----- Start time:", datetime.datetime.now())
         sess.run(model.var_init)
-        sim_runner = SimRunner(sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path)
+        sim_runner = SimRunner(sess, model, memory, traffic_gen, total_episodes, gamma, max_steps, green_duration, yellow_duration, sumoCmd, test, path,restore)
         episode = 0
 
         while episode < total_episodes:
